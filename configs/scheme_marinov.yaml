@@ -1,42 +1,41 @@
 # Kinetic scheme: Marinov et al. (2017) O/silica R1-R7
 # BKL events use rates r1–r5 (r6, r7 are diffusion outcomes).
 # Variables: F_density, S_density, T, atomFlux, Edes, Edif, Vdes, Vdif, Er, Erlh, R (8.31).
-# Functions: exp, ln/log, sqrt, abs, pow, min, max, log10, exp10, pi. Operators: + - * / ^.
-# Optional lambda_expr per event: free_F_sites, free_S_sites, atoms_on_F, atoms_on_S, r1–r7, F_density, S_density, atomFlux, T.
-# If lambda_expr is omitted, defaults apply (e.g. adsorption_F -> free_F_sites * r1).
+# Math: exp, ln, sqrt, pow, ^ … OR named presets: arrhenius(V,E), per(E), adsorption_flux(), bkl_sites_rate(sites, rate).
+# Manual formulas still allowed, e.g. Vdes * exp(-Edes / (R * T)).
 
 rates:
   - id: r1
-    expr: "atomFlux / (F_density + S_density)"
+    expr: "adsorption_flux()"
   - id: r2
-    expr: "Vdes * exp(-Edes / (8.31 * T))"
+    expr: "arrhenius(Vdes, Edes)"
   - id: r3
-    expr: "atomFlux / (F_density + S_density)"
+    expr: "adsorption_flux()"
   - id: r4
-    expr: "exp(-Er / (8.31 * T)) * r3"
+    expr: "er_with_r3(Er)"
   - id: r5
-    expr: "Vdif * exp(-Edif / (8.31 * T))"
+    expr: "arrhenius(Vdif, Edif)"
 
 # Probabilities when diffusion lands on occupied S or F site (E-R / L-H).
 probabilities:
   - id: recomb_S
-    expr: "exp(-Er / (8.31 * T))"
+    expr: "per(Er)"
   - id: recomb_F
-    expr: "exp(-Erlh / (8.31 * T))"
+    expr: "plh(Erlh)"
 
 events:
   - event_type: adsorption_F
     rate_id: r1
-    lambda_expr: "free_F_sites * r1"
+    lambda_expr: "bkl_sites_rate(free_F_sites, r1)"
   - event_type: adsorption_S
     rate_id: r3
-    lambda_expr: "free_S_sites * r3"
+    lambda_expr: "bkl_sites_rate(free_S_sites, r3)"
   - event_type: desorption_F
     rate_id: r2
-    lambda_expr: "atoms_on_F * r2"
+    lambda_expr: "bkl_atoms_rate(atoms_on_F, r2)"
   - event_type: recomb_ER
     rate_id: r4
-    lambda_expr: "atoms_on_S * r4"
+    lambda_expr: "bkl_atoms_rate(atoms_on_S, r4)"
   - event_type: diffusion
     rate_id: r5
-    lambda_expr: "atoms_on_F * r5"
+    lambda_expr: "bkl_atoms_rate(atoms_on_F, r5)"

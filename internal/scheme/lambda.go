@@ -19,12 +19,22 @@ type LambdaContext struct {
 	T          float64
 }
 
-// EvalLambdaExpr evaluates a BKL lambda expression (e.g. "free_F_sites * r1").
+// EvalLambdaExpr evaluates a BKL lambda expression using builtin presets only.
 func EvalLambdaExpr(expr string, ctx *LambdaContext) (float64, error) {
+	return (&Scheme{}).EvalLambdaExpr(expr, ctx)
+}
+
+// EvalLambdaExpr evaluates lambda_expr; expands named presets then govaluate.
+func (s *Scheme) EvalLambdaExpr(expr string, ctx *LambdaContext) (float64, error) {
 	if expr == "" {
 		return 0, fmt.Errorf("empty lambda_expr")
 	}
-	parsed, err := govaluate.NewEvaluableExpressionWithFunctions(expr, exprFunctions)
+	reg := s.FunctionRegistry()
+	expanded, err := ExpandFormula(expr, reg)
+	if err != nil {
+		return 0, fmt.Errorf("lambda_expr: %w", err)
+	}
+	parsed, err := govaluate.NewEvaluableExpressionWithFunctions(expanded, exprFunctions)
 	if err != nil {
 		return 0, fmt.Errorf("lambda_expr parse: %w", err)
 	}

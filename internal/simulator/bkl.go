@@ -32,7 +32,13 @@ func (s *Simulator) lambdaContext(elementName string, meta SimulationMeta) *sche
 func (s *Simulator) calcEventLambda(ev scheme.EventDef, elementName string, meta SimulationMeta) float64 {
 	expr := ev.EffectiveLambdaExpr()
 	if expr != "" {
-		lam, err := scheme.EvalLambdaExpr(expr, s.lambdaContext(elementName, meta))
+		var lam float64
+		var err error
+		if s.kineticScheme != nil {
+			lam, err = s.kineticScheme.EvalLambdaExpr(expr, s.lambdaContext(elementName, meta))
+		} else {
+			lam, err = scheme.EvalLambdaExpr(expr, s.lambdaContext(elementName, meta))
+		}
 		if err != nil {
 			slog.Error("lambda_expr eval", "event", ev.EventType, "expr", expr, "err", err)
 			return 0

@@ -10,9 +10,10 @@ import (
 
 // Scheme defines the kinetic scheme: rate expressions and event types for BKL.
 type Scheme struct {
-	Rates         []RateDef    `yaml:"rates"`
-	Probabilities []ProbDef    `yaml:"probabilities"`
-	Events        []EventDef   `yaml:"events"`
+	Functions     map[string]FunctionDef `yaml:"functions,omitempty"`
+	Rates         []RateDef              `yaml:"rates"`
+	Probabilities []ProbDef              `yaml:"probabilities"`
+	Events        []EventDef             `yaml:"events"`
 }
 
 type RateDef struct {
@@ -89,8 +90,13 @@ func (s *Scheme) Eval(ctx *EvalContext) (*ComputedRates, error) {
 	}
 	rates := make(map[string]float64)
 
+	reg := s.FunctionRegistry()
 	for _, r := range s.Rates {
-		expr, err := govaluate.NewEvaluableExpressionWithFunctions(r.Expr, exprFunctions)
+		expanded, err := ExpandFormula(r.Expr, reg)
+		if err != nil {
+			return nil, fmt.Errorf("rate %q: %w", r.ID, err)
+		}
+		expr, err := govaluate.NewEvaluableExpressionWithFunctions(expanded, exprFunctions)
 		if err != nil {
 			return nil, fmt.Errorf("rate %q expr: %w", r.ID, err)
 		}
@@ -112,7 +118,11 @@ func (s *Scheme) Eval(ctx *EvalContext) (*ComputedRates, error) {
 	// Probabilities
 	probRecombS, probRecombF := 0.0, 0.0
 	for _, p := range s.Probabilities {
-		expr, err := govaluate.NewEvaluableExpressionWithFunctions(p.Expr, exprFunctions)
+		expanded, err := ExpandFormula(p.Expr, reg)
+		if err != nil {
+			return nil, fmt.Errorf("prob %q: %w", p.ID, err)
+		}
+		expr, err := govaluate.NewEvaluableExpressionWithFunctions(expanded, exprFunctions)
 		if err != nil {
 			return nil, fmt.Errorf("prob %q expr: %w", p.ID, err)
 		}

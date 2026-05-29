@@ -113,7 +113,8 @@ schemePath: ""
 
 1. **`rates`** — список скоростей r1–r5. У каждой записи:
    - `id` — имя (r1, r2, …).
-   - `expr` — формула (строка). Переменные: `F_density`, `S_density`, `T`, `atomFlux`, `Edes`, `Edif`, `Vdes`, `Vdif`, `Er`, `Erlh`, `R` (8.31), ранее вычисленные `r1`…`r7`. Функции: `exp`, `ln`/`log`, `sqrt`, `abs`, `pow`, `min`, `max`, `log10`, `exp10`, `pi`. Операторы: `+ - * / ^`.
+   - `expr` — формула (строка) или **именованный пресет**: `arrhenius(Vdes, Edes)`, `per(Er)`, `adsorption_flux()`, `bkl_sites_rate(free_F_sites, r1)` и т.д. (раскрываются перед вычислением). Можно писать и **вручную**: `Vdes * exp(-Edes / (R * T))`. Переменные: `F_density`, `S_density`, `T`, `atomFlux`, `Edes`, … `R` (8.31), `r1`…`r7`. Математика: `exp`, `ln`, `sqrt`, `pow`, `^`.
+   - `functions:` (опционально) — свои пресеты `{ имя: { params: [...], expr: "..." } }`.
 
 2. **`probabilities`** — вероятности при исходе диффузии (рекомбинация на S или F). Поля `id` и `expr`. Ожидаемые id: `recomb_S`, `recomb_F`.
 

@@ -36,6 +36,8 @@ type Simulator struct {
 
 	// BKL catalog: event types and rate bindings (from scheme YAML or defaults).
 	bklEvents []scheme.EventDef
+	// Loaded kinetic scheme (for preset expansion in lambda_expr).
+	kineticScheme *scheme.Scheme
 }
 
 type Values struct {
@@ -57,10 +59,11 @@ func NewSimulator(cfg configs.Config, temperature int, simulationTime float64) *
 	atomsController := NewSurfaceAtomsController(cfg.Simulating.MatrixLenX, cfg.Simulating.MatrixLenY, matrix, cfg.Elements)
 
 	var (
-		meta         = make(map[string]SimulationMeta)
-		elems        = make([]string, 0, len(cfg.Elements))
-		combinedAtom *string
-		bklEvents    = scheme.DefaultEvents()
+		meta          = make(map[string]SimulationMeta)
+		elems         = make([]string, 0, len(cfg.Elements))
+		combinedAtom  *string
+		bklEvents     = scheme.DefaultEvents()
+		kineticScheme *scheme.Scheme
 	)
 
 	if cfg.SchemePath != "" {
@@ -68,6 +71,7 @@ func NewSimulator(cfg configs.Config, temperature int, simulationTime float64) *
 		if err != nil {
 			log.Fatalf("load scheme %q: %v", cfg.SchemePath, err)
 		}
+		kineticScheme = sch
 		bklEvents = sch.BKLEvents()
 		for _, element := range cfg.Elements {
 			m, err := FillFromScheme(sch, element, cfg.Constants, float64(temperature))
@@ -127,6 +131,7 @@ func NewSimulator(cfg configs.Config, temperature int, simulationTime float64) *
 		elementValues:         make(map[string]map[string]*Values),
 		stableIterationsCount: 0,
 		bklEvents:             bklEvents,
+		kineticScheme:         kineticScheme,
 	}
 }
 

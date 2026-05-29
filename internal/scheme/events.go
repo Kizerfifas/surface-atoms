@@ -58,12 +58,16 @@ func DefaultEvents() []EventDef {
 // Validate checks rates, probabilities, and BKL events.
 func (s *Scheme) Validate() error {
 	rateIDs := make(map[string]struct{}, len(s.Rates))
+	reg := s.FunctionRegistry()
 	for _, r := range s.Rates {
 		if r.ID == "" {
 			return fmt.Errorf("rate with empty id")
 		}
 		if r.Expr == "" {
 			return fmt.Errorf("rate %q: empty expr", r.ID)
+		}
+		if _, err := ExpandFormula(r.Expr, reg); err != nil {
+			return fmt.Errorf("rate %q: %w", r.ID, err)
 		}
 		rateIDs[r.ID] = struct{}{}
 	}
@@ -73,6 +77,9 @@ func (s *Scheme) Validate() error {
 		}
 		if p.Expr == "" {
 			return fmt.Errorf("probability %q: empty expr", p.ID)
+		}
+		if _, err := ExpandFormula(p.Expr, reg); err != nil {
+			return fmt.Errorf("probability %q: %w", p.ID, err)
 		}
 	}
 
@@ -93,7 +100,12 @@ func (s *Scheme) Validate() error {
 		}
 		lambdaExpr := e.EffectiveLambdaExpr()
 		if lambdaExpr != "" {
-			_, err := govaluate.NewEvaluableExpressionWithFunctions(lambdaExpr, exprFunctions)
+			reg := s.FunctionRegistry()
+			expanded, err := ExpandFormula(lambdaExpr, reg)
+			if err != nil {
+				return fmt.Errorf("events[%d] %q lambda_expr: %w", i, e.EventType, err)
+			}
+			_, err = govaluate.NewEvaluableExpressionWithFunctions(expanded, exprFunctions)
 			if err != nil {
 				return fmt.Errorf("events[%d] %q lambda_expr: %w", i, e.EventType, err)
 			}
