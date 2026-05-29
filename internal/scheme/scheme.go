@@ -87,6 +87,9 @@ func Load(path string) (*Scheme, error) {
 	if err := yaml.Unmarshal(data, &s); err != nil {
 		return nil, fmt.Errorf("parse scheme YAML: %w", err)
 	}
+	if err := s.Validate(); err != nil {
+		return nil, fmt.Errorf("scheme validation: %w", err)
+	}
 	return &s, nil
 }
 

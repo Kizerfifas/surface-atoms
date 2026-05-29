@@ -33,6 +33,9 @@ type Simulator struct {
 	// [elementName][parameterName]Values
 	elementValues         map[string]map[string]*Values
 	stableIterationsCount int
+
+	// BKL catalog: event types and rate bindings (from scheme YAML or defaults).
+	bklEvents []scheme.EventDef
 }
 
 type Values struct {
@@ -57,6 +60,7 @@ func NewSimulator(cfg configs.Config, temperature int, simulationTime float64) *
 		meta         = make(map[string]SimulationMeta)
 		elems        = make([]string, 0, len(cfg.Elements))
 		combinedAtom *string
+		bklEvents    = scheme.DefaultEvents()
 	)
 
 	if cfg.SchemePath != "" {
@@ -64,6 +68,7 @@ func NewSimulator(cfg configs.Config, temperature int, simulationTime float64) *
 		if err != nil {
 			log.Fatalf("load scheme %q: %v", cfg.SchemePath, err)
 		}
+		bklEvents = sch.BKLEvents()
 		for _, element := range cfg.Elements {
 			m, err := FillFromScheme(sch, element, cfg.Constants, float64(temperature))
 			if err != nil {
@@ -121,6 +126,7 @@ func NewSimulator(cfg configs.Config, temperature int, simulationTime float64) *
 		elems:                 elems,
 		elementValues:         make(map[string]map[string]*Values),
 		stableIterationsCount: 0,
+		bklEvents:             bklEvents,
 	}
 }
 
@@ -163,21 +169,12 @@ func (s *Simulator) Simulate() {
 			progressCount++
 		}
 
-		process, elementName, spendTime := s.getProcess()
+		eventType, elementName, spendTime := s.getProcess()
 		s.currentSimulationTime += spendTime
 		s.infoCollector.ElapsedTime += spendTime
 
-		switch process {
-		case adsorptionSProcess:
-			s.adsorbAtom('S', elementName)
-		case adsorptionFProcess:
-			s.adsorbAtom('F', elementName)
-		case recombErProcess:
-			s.RecombEr(elementName)
-		case desorptionFProcess:
-			s.desorbAtom('F', elementName)
-		case diffusionProcess:
-			s.moveRandomAtom(elementName, s.meta[elementName])
+		if eventType != "" {
+			s.executeEvent(eventType, elementName, s.meta[elementName])
 		}
 
 		if s.currentSimulationTime >= nextExcelWriteTime {
@@ -228,46 +225,32 @@ func (s *Simulator) Simulate() {
 	}
 }
 
-const (
-	adsorptionFProcess = "adsorptionF"
-	adsorptionSProcess = "adsorptionS"
-	recombErProcess    = "recombEr"
-	desorptionFProcess = "desorptionF"
-	diffusionProcess   = "diffusion"
-)
-
-func (s *Simulator) getProcess() (process string, elementName string, processTime float64) {
-	// Calculate total lambda for all elements and processes
+func (s *Simulator) getProcess() (eventType string, elementName string, processTime float64) {
 	totalLambda := 0.0
 	type processInfo struct {
 		probability float64
 		elementName string
-		process     string
+		eventType   string
 	}
-	processes := make([]processInfo, 0)
+	processes := make([]processInfo, 0, len(s.meta)*len(s.bklEvents))
 
 	for name, meta := range s.meta {
-		lambdaAdsorptionF := s.calcLambdaAdsorptionF(meta)
-		lambdaAdsorptionS := s.calcLambdaAdsorptionS(meta)
-		lambdaRecombEr := s.calcLambdaRecombEr(name, meta)
-		lambdaDesorptionF := s.calcLambdaDesorptionF(name, meta)
-		lambdaDiffusions := s.calcLambdaDiffusion(name, meta)
+		for _, ev := range s.bklEvents {
+			lambda := s.calcEventLambda(ev.EventType, ev.RateID, name, meta)
+			if lambda <= 0 {
+				continue
+			}
+			totalLambda += lambda
+			processes = append(processes, processInfo{
+				probability: lambda,
+				elementName: name,
+				eventType:   scheme.NormalizeEventType(ev.EventType),
+			})
+		}
+	}
 
-		// Add all lambdas to total
-		totalLambda += lambdaAdsorptionF +
-			lambdaAdsorptionS +
-			lambdaRecombEr +
-			lambdaDesorptionF +
-			lambdaDiffusions
-
-		// Store all processes with their lambdas
-		processes = append(processes,
-			processInfo{lambdaAdsorptionF, name, adsorptionFProcess},
-			processInfo{lambdaAdsorptionS, name, adsorptionSProcess},
-			processInfo{lambdaRecombEr, name, recombErProcess},
-			processInfo{lambdaDesorptionF, name, desorptionFProcess},
-			processInfo{lambdaDiffusions, name, diffusionProcess},
-		)
+	if totalLambda <= 0 {
+		return "", "", 0
 	}
 
 	// Calculate probabilities relative to total lambda
@@ -287,11 +270,11 @@ func (s *Simulator) getProcess() (process string, elementName string, processTim
 	for _, proc := range processes {
 		cumulativeProbability += proc.probability
 		if randomNumber <= cumulativeProbability {
-			return proc.process, proc.elementName, spentTime
+			return proc.eventType, proc.elementName, spentTime
 		}
 	}
 
-	return "nothing", "", 0
+	return "", "", 0
 }
 
 func (s *Simulator) adsorbAtom(center rune, elementName string) {

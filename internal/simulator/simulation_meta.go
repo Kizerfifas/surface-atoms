@@ -19,6 +19,28 @@ type SimulationMeta struct {
 	recombinationProbabilityOnFSite float64
 }
 
+// RateByID returns an evaluated rate from scheme YAML (r1–r7).
+func (m SimulationMeta) RateByID(id string) float64 {
+	switch id {
+	case "r1":
+		return m.r1
+	case "r2":
+		return m.r2
+	case "r3":
+		return m.r3
+	case "r4":
+		return m.r4
+	case "r5":
+		return m.r5
+	case "r6":
+		return m.r6
+	case "r7":
+		return m.r7
+	default:
+		return 0
+	}
+}
+
 func Fill(element configs.Element, constants configs.Constants, temperature float64) SimulationMeta {
 	atomFlux := calculateAtomFlux(element, temperature)
 	r1 := calcR1(constants, atomFlux)
