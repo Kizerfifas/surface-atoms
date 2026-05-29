@@ -50,7 +50,9 @@ surface-atoms/
 └── result 2026-… T300K/    ← результаты прогона (создаёт симулятор)
 ```
 
-Studio пишет **только** в `config.yaml` и `configs/*.yaml` (плюс журналы sweep в `surface-kinetics-studio/data/sweeps/`).
+Studio пишет в `config.yaml` и в `configs/*.yaml` (плюс журналы sweep в `surface-kinetics-studio/data/sweeps/`).
+
+**Git:** в репозитории зафиксирован только пример `configs/scheme_marinov.yaml`. Новые схемы (`scheme_my.yaml`, …) остаются **локально** (см. `.gitignore`) и в коммиты не попадают.
 
 ---
 
