@@ -1,6 +1,7 @@
 # Kinetic scheme: Marinov et al. (2017) O/silica R1-R7
 # BKL events use rates r1–r5 (r6, r7 are diffusion outcomes).
-# Rate/probability variables: F_density, S_density, T, atomFlux, Edes, Edif, Vdes, Vdif, Er, Erlh; exp, log.
+# Variables: F_density, S_density, T, atomFlux, Edes, Edif, Vdes, Vdif, Er, Erlh, R (8.31).
+# Functions: exp, ln/log, sqrt, abs, pow, min, max, log10, exp10, pi. Operators: + - * / ^.
 # Optional lambda_expr per event: free_F_sites, free_S_sites, atoms_on_F, atoms_on_S, r1–r7, F_density, S_density, atomFlux, T.
 # If lambda_expr is omitted, defaults apply (e.g. adsorption_F -> free_F_sites * r1).
 

@@ -2,36 +2,11 @@ package scheme
 
 import (
 	"fmt"
-	"math"
 	"os"
 
 	"github.com/Knetic/govaluate"
 	"gopkg.in/yaml.v3"
 )
-
-// exprFunctions are available in rate/probability expressions.
-var exprFunctions = map[string]govaluate.ExpressionFunction{
-	"exp": func(args ...interface{}) (interface{}, error) {
-		if len(args) != 1 {
-			return nil, fmt.Errorf("exp expects 1 argument")
-		}
-		f, ok := toFloat(args[0])
-		if !ok {
-			return nil, fmt.Errorf("exp: argument not a number")
-		}
-		return math.Exp(f), nil
-	},
-	"log": func(args ...interface{}) (interface{}, error) {
-		if len(args) != 1 {
-			return nil, fmt.Errorf("log expects 1 argument")
-		}
-		f, ok := toFloat(args[0])
-		if !ok {
-			return nil, fmt.Errorf("log: argument not a number")
-		}
-		return math.Log(f), nil
-	},
-}
 
 // Scheme defines the kinetic scheme: rate expressions and event types for BKL.
 type Scheme struct {
@@ -110,6 +85,7 @@ func (s *Scheme) Eval(ctx *EvalContext) (*ComputedRates, error) {
 		"Vdif":      ctx.Vdif,
 		"Er":        ctx.Er,
 		"Erlh":      ctx.Erlh,
+		"R":         MarinovR,
 	}
 	rates := make(map[string]float64)
 

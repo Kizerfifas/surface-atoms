@@ -12,7 +12,7 @@ KMC-симулятор поверхностной кинетики (адсорб
 
 | Пакет | Назначение |
 |-------|------------|
-| `github.com/Knetic/govaluate` | Вычисление формул скоростей из схемы (exp, log) |
+| `github.com/Knetic/govaluate` | Формулы: exp, ln, sqrt, pow, min, max, abs, ^, R=8.31 |
 | `github.com/knadh/koanf` + yaml/file | Загрузка `config.yaml` |
 | `gopkg.in/yaml.v3` | Парсинг YAML (схема и конфиг) |
 | `github.com/xuri/excelize/v2` | Вывод результатов в Excel |
@@ -113,7 +113,7 @@ schemePath: ""
 
 1. **`rates`** — список скоростей r1–r5. У каждой записи:
    - `id` — имя (r1, r2, …).
-   - `expr` — формула (строка). Доступны переменные: `F_density`, `S_density`, `T`, `atomFlux`, `Edes`, `Edif`, `Vdes`, `Vdif`, `Er`, `Erlh`, а также ранее вычисленные скорости (например в r4 можно использовать `r3`). Функции: `exp(...)`, `log(...)`.
+   - `expr` — формула (строка). Переменные: `F_density`, `S_density`, `T`, `atomFlux`, `Edes`, `Edif`, `Vdes`, `Vdif`, `Er`, `Erlh`, `R` (8.31), ранее вычисленные `r1`…`r7`. Функции: `exp`, `ln`/`log`, `sqrt`, `abs`, `pow`, `min`, `max`, `log10`, `exp10`, `pi`. Операторы: `+ - * / ^`.
 
 2. **`probabilities`** — вероятности при исходе диффузии (рекомбинация на S или F). Поля `id` и `expr`. Ожидаемые id: `recomb_S`, `recomb_F`.
 

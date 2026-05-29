@@ -37,6 +37,7 @@ func EvalLambdaExpr(expr string, ctx *LambdaContext) (float64, error) {
 		"S_density":    ctx.S_density,
 		"atomFlux":     ctx.AtomFlux,
 		"T":            ctx.T,
+		"R":            MarinovR,
 	}
 	for id, v := range ctx.Rates {
 		params[id] = v

@@ -4,68 +4,31 @@ simulating:
   matrixLenY: 1000
   floatPrecision: 8
   graphicsToPlot:
-    [
-      { xAxis: "Simulation time", yAxis: "Surface coverage" },
-      { xAxis: "Simulation time", yAxis: "Density F" },
-      { xAxis: "Simulation time", yAxis: "Density S" },
-    ]
-  #  Включена ли остановка при достижении квази-стационарного состояния
-  "stopOnQuasiSteady": true
-  # Количество последовательных проверок на квази-стационарность, необходимых для остановки симуляции
-  "requiredStableChecks": 10
-  "checkParameters": [
-    {
-      #      Название поля по которому смотреть изменения
-      "name": "densityF" ,
-      #      Процент отклонения
-      "tolerance": 2,
-      #      Размер окна в котором хранить последние значения
-      "valuesWindowSize": 100,
-    },
-    #    {
-    #      "name": "densityS" ,
-    #      "tolerance": 1,
-    #      "valuesWindowSize": 100,
-    #    },
-    #    {
-    #      "name": "density" ,
-    #      "tolerance": 1,
-    #      "valuesWindowSize": 100,
-    #    },
-    #    {
-    #      "name": "atomsOnSurface" ,
-    #      "tolerance": 0.1,
-    #      "valuesWindowSize": 100,
-    #    },
-  ]
-
-# Optional: path to YAML kinetic scheme (variant A). If set, rates come from scheme; if empty, legacy Fill() is used.
-schemePath: "configs/scheme_marinov.yaml"
-
+    - xAxis: Simulation time
+      yAxis: Surface coverage
+    - xAxis: Simulation time
+      yAxis: Density F
+    - xAxis: Simulation time
+      yAxis: Density S
+  stopOnQuasiSteady: true
+  requiredStableChecks: 10
+  checkParameters:
+    - name: densityF
+      tolerance: 2
+      valuesWindowSize: 100
+schemePath: configs/scheme_marinov.yaml
 consts:
-  fDensity: 1.5e+15
+  fDensity: 1500000000000000
   fi: 0.002
-  sDensity: 3e+12
-
+  sDensity: 3000000000000
 elements:
   - name: "N"
     mass: 14
     edes: 51000
     edif: 25500
-    vdes: 1e+15
-    vdif: 1e+13
+    vdes: 1000000000000000
+    vdif: 10000000000000
     er: 14000
     erlh: 0
-    agDensity: 8e+14
+    agDensity: 800000000000000
     sort: 1
-
-  - name: "O"
-    mass: 16.00
-    edes: 55000
-    edif: 27500
-    vdes: 1e+13
-    vdif: 1e+11
-    er: 16000
-    erlh: 2000
-    agDensity: 2e+14
-    sort: 2
