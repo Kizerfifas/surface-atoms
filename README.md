@@ -119,7 +119,8 @@ schemePath: ""
 
 3. **`events`** — список процессов для BKL (порядок в файле = порядок в каталоге λ):
    - `event_type`: `adsorption_F`, `adsorption_S`, `desorption_F`, `recomb_ER`, `diffusion`.
-   - `rate_id`: один из id из `rates` (λ = префактор поверхности × эта скорость).
+   - `rate_id`: один из id из `rates`.
+   - `lambda_expr` (опционально): формула λ, например `free_F_sites * r1`. Переменные: `free_F_sites`, `free_S_sites`, `atoms_on_F`, `atoms_on_S`, `r1`–`r7`, `F_density`, `S_density`, `atomFlux`, `T`. Если пусто — подставляется выражение по умолчанию для `event_type` (Marinov).
 
 Симулятор читает `events` из схемы и выбирает шаг BKL по ним. Если `events` пустой — подставляется набор Marinov по умолчанию. Без `schemePath` используются те же пять событий и legacy-формулы `Fill()`.
 

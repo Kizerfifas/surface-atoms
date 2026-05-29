@@ -1,11 +1,51 @@
 package simulator
 
 import (
+	"log/slog"
 	"main/internal/scheme"
 )
 
-// calcEventLambda computes BKL λ for a scheme event: prefactor(surface state) × rate from YAML.
-func (s *Simulator) calcEventLambda(eventType, rateID, elementName string, meta SimulationMeta) float64 {
+func (s *Simulator) lambdaContext(elementName string, meta SimulationMeta) *scheme.LambdaContext {
+	rates := map[string]float64{
+		"r1": meta.RateByID("r1"),
+		"r2": meta.RateByID("r2"),
+		"r3": meta.RateByID("r3"),
+		"r4": meta.RateByID("r4"),
+		"r5": meta.RateByID("r5"),
+		"r6": meta.RateByID("r6"),
+		"r7": meta.RateByID("r7"),
+	}
+	return &scheme.LambdaContext{
+		FreeFSites: s.matrix.CountFreeCellsOfFCenters(),
+		FreeSSites: s.matrix.CountFreeCellsOfSCenters(),
+		AtomsOnF:   s.atomsController.AtomsOnFCenters[elementName].Len(),
+		AtomsOnS:   s.atomsController.AtomsOnSCenters[elementName].Len(),
+		Rates:      rates,
+		F_density:  s.cfg.Constants.FDensity,
+		S_density:  s.cfg.Constants.SDensity,
+		AtomFlux:   meta.atomFlux,
+		T:          float64(s.temperature),
+	}
+}
+
+// calcEventLambda computes BKL λ for a scheme event (lambda_expr or builtin prefactor × rate).
+func (s *Simulator) calcEventLambda(ev scheme.EventDef, elementName string, meta SimulationMeta) float64 {
+	expr := ev.EffectiveLambdaExpr()
+	if expr != "" {
+		lam, err := scheme.EvalLambdaExpr(expr, s.lambdaContext(elementName, meta))
+		if err != nil {
+			slog.Error("lambda_expr eval", "event", ev.EventType, "expr", expr, "err", err)
+			return 0
+		}
+		if lam < 0 {
+			return 0
+		}
+		return lam
+	}
+	return s.calcBuiltinEventLambda(ev.EventType, ev.RateID, elementName, meta)
+}
+
+func (s *Simulator) calcBuiltinEventLambda(eventType, rateID, elementName string, meta SimulationMeta) float64 {
 	rate := meta.RateByID(rateID)
 	if rate <= 0 {
 		return 0

@@ -236,7 +236,7 @@ func (s *Simulator) getProcess() (eventType string, elementName string, processT
 
 	for name, meta := range s.meta {
 		for _, ev := range s.bklEvents {
-			lambda := s.calcEventLambda(ev.EventType, ev.RateID, name, meta)
+			lambda := s.calcEventLambda(ev, name, meta)
 			if lambda <= 0 {
 				continue
 			}

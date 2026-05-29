@@ -1,6 +1,10 @@
 package scheme
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/Knetic/govaluate"
+)
 
 // Canonical BKL event_type values (YAML scheme).
 const (
@@ -87,8 +91,23 @@ func (s *Scheme) Validate() error {
 		if _, ok := rateIDs[e.RateID]; !ok {
 			return fmt.Errorf("events[%d] %q: unknown rate_id %q", i, e.EventType, e.RateID)
 		}
+		lambdaExpr := e.EffectiveLambdaExpr()
+		if lambdaExpr != "" {
+			_, err := govaluate.NewEvaluableExpressionWithFunctions(lambdaExpr, exprFunctions)
+			if err != nil {
+				return fmt.Errorf("events[%d] %q lambda_expr: %w", i, e.EventType, err)
+			}
+		}
 	}
 	return nil
+}
+
+// EffectiveLambdaExpr returns explicit lambda_expr or the Marinov default for this event.
+func (e EventDef) EffectiveLambdaExpr() string {
+	if e.LambdaExpr != "" {
+		return e.LambdaExpr
+	}
+	return DefaultLambdaExpr(e.EventType, e.RateID)
 }
 
 // BKLEvents returns events for BKL selection (defaults if omitted in YAML).

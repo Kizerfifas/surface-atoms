@@ -20,7 +20,7 @@ func TestCalcEventLambda_matchesLegacy(t *testing.T) {
 	meta := sim.meta["N"]
 
 	for _, ev := range scheme.DefaultEvents() {
-		got := sim.calcEventLambda(ev.EventType, ev.RateID, "N", meta)
+		got := sim.calcEventLambda(ev, "N", meta)
 		var want float64
 		switch scheme.NormalizeEventType(ev.EventType) {
 		case scheme.EventAdsorptionF:

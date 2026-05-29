@@ -51,8 +51,9 @@ type ProbDef struct {
 }
 
 type EventDef struct {
-	EventType string `yaml:"event_type"`
-	RateID    string `yaml:"rate_id"`
+	EventType  string `yaml:"event_type"`
+	RateID     string `yaml:"rate_id"`
+	LambdaExpr string `yaml:"lambda_expr,omitempty"` // optional; default from event_type × rate_id
 }
 
 // EvalContext holds all variables available in rate/probability expressions.
