@@ -9,6 +9,7 @@ import (
 	"main/configs"
 	"main/internal/graphic_plotter"
 	randomx "main/internal/random"
+	"main/internal/scheme"
 	"math"
 	"os"
 	"slices"
@@ -58,9 +59,24 @@ func NewSimulator(cfg configs.Config, temperature int, simulationTime float64) *
 		combinedAtom *string
 	)
 
-	for _, element := range cfg.Elements {
-		meta[element.Name] = Fill(element, cfg.Constants, float64(temperature))
-		elems = append(elems, element.Name)
+	if cfg.SchemePath != "" {
+		sch, err := scheme.Load(cfg.SchemePath)
+		if err != nil {
+			log.Fatalf("load scheme %q: %v", cfg.SchemePath, err)
+		}
+		for _, element := range cfg.Elements {
+			m, err := FillFromScheme(sch, element, cfg.Constants, float64(temperature))
+			if err != nil {
+				log.Fatalf("scheme eval for element %q: %v", element.Name, err)
+			}
+			meta[element.Name] = m
+			elems = append(elems, element.Name)
+		}
+	} else {
+		for _, element := range cfg.Elements {
+			meta[element.Name] = Fill(element, cfg.Constants, float64(temperature))
+			elems = append(elems, element.Name)
+		}
 	}
 
 	if len(elems) > 1 {

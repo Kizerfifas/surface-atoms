@@ -10,6 +10,8 @@ type Config struct {
 	Simulating Simulating `json:"simulating"`
 	Constants  Constants  `json:"consts"`
 	Elements   []Element  `json:"elements"`
+	// SchemePath is optional path to a YAML kinetic scheme (variant A). If empty, legacy Fill() is used.
+	SchemePath string `json:"schemePath"`
 }
 
 type Simulating struct {

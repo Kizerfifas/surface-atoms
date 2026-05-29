@@ -39,6 +39,9 @@ simulating:
     #    },
   ]
 
+# Optional: path to YAML kinetic scheme (variant A). If set, rates come from scheme; if empty, legacy Fill() is used.
+schemePath: "configs/scheme_marinov.yaml"
+
 consts:
   fDensity: 1.5e+15
   fi: 0.002

@@ -2,6 +2,7 @@ package simulator
 
 import (
 	"main/configs"
+	"main/internal/scheme"
 	"math"
 )
 
@@ -96,4 +97,41 @@ func calcRecombinationProbabilityOnSSite(element configs.Element, temperature fl
 
 func calcRecombinationProbabilityOnFSite(element configs.Element, temperature float64) float64 {
 	return math.Exp(-element.Erlh / (8.31 * float64(temperature)))
+}
+
+// FillFromScheme builds SimulationMeta from an external scheme (variant A).
+// Uses the same atomFlux formula as Fill; rates and probabilities come from scheme.Eval.
+func FillFromScheme(sch *scheme.Scheme, element configs.Element, constants configs.Constants, temperature float64) (SimulationMeta, error) {
+	atomFlux := calculateAtomFlux(element, temperature)
+	ctx := &scheme.EvalContext{
+		F_density: constants.FDensity,
+		S_density: constants.SDensity,
+		T:         temperature,
+		AtomFlux:  atomFlux,
+		Edes:      element.Edes,
+		Edif:      element.Edif,
+		Vdes:      element.Vdes,
+		Vdif:      element.Vdif,
+		Er:        element.Er,
+		Erlh:      element.Erlh,
+	}
+	cr, err := sch.Eval(ctx)
+	if err != nil {
+		return SimulationMeta{}, err
+	}
+	// r6, r7 are used in reporting (calcProbabilitySLh/FLh); derive from r5 and probs.
+	r6 := cr.ProbRecombS * cr.R5
+	r7 := cr.ProbRecombF * cr.R5
+	return SimulationMeta{
+		atomFlux:                        cr.AtomFlux,
+		r1:                              cr.R1,
+		r2:                              cr.R2,
+		r3:                              cr.R3,
+		r4:                              cr.R4,
+		r5:                              cr.R5,
+		r6:                              r6,
+		r7:                              r7,
+		recombinationProbabilityOnSSite: cr.ProbRecombS,
+		recombinationProbabilityOnFSite: cr.ProbRecombF,
+	}, nil
 }

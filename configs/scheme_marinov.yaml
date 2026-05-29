@@ -1,0 +1,35 @@
+# Kinetic scheme: Marinov et al. (2017) O/silica R1-R7
+# BKL events use rates r1, r2, r3, r4, r5 (r6, r7 are diffusion outcomes).
+# Variables in expressions: F_density, S_density, T, atomFlux, Edes, Edif, Vdes, Vdif, Er, Erlh.
+# Later rates can reference earlier ones (e.g. r4 uses r3).
+
+rates:
+  - id: r1
+    expr: "atomFlux / (F_density + S_density)"
+  - id: r2
+    expr: "Vdes * exp(-Edes / (8.31 * T))"
+  - id: r3
+    expr: "atomFlux / (F_density + S_density)"
+  - id: r4
+    expr: "exp(-Er / (8.31 * T)) * r3"
+  - id: r5
+    expr: "Vdif * exp(-Edif / (8.31 * T))"
+
+# Probabilities when diffusion lands on occupied S or F site (E-R / L-H).
+probabilities:
+  - id: recomb_S
+    expr: "exp(-Er / (8.31 * T))"
+  - id: recomb_F
+    expr: "exp(-Erlh / (8.31 * T))"
+
+events:
+  - event_type: adsorption_F
+    rate_id: r1
+  - event_type: adsorption_S
+    rate_id: r3
+  - event_type: desorption_F
+    rate_id: r2
+  - event_type: recomb_ER
+    rate_id: r4
+  - event_type: diffusion
+    rate_id: r5
