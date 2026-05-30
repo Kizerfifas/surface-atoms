@@ -243,6 +243,7 @@ NODE_ENV=production npm start
 | `go: command not found` | Go не установлен | Установить Go 1.23+ |
 | 502 через nginx | Vite не работает | `npm run dev` на ВМ, порт 5173 |
 | Пустые результаты | Симуляция не завершилась | Лог в терминале, где запущен `npm run dev` |
+| `missing go.sum entry for module…` | Старый клон без `go.sum` в репозитории | `git pull` (ветка `dev`) или `go mod tidy` && `go build` |
 
 ---
 
