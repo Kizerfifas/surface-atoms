@@ -30,8 +30,6 @@ go.work.sum
 *.xlsx
 *.html
 
-go.sum
-
 # Kinetic schemes: only examples in git; user-created YAML stays local
 configs/*.yaml
 !configs/scheme_marinov.yaml
